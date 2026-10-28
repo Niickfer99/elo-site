@@ -303,9 +303,15 @@ function prepareProfileEdit(){
 
       <hr>
 
-      <button class="secondary" data-go="account">
-        ← Voltar ao meu perfil
-      </button>
+      <div class="actions">
+  <button data-action="saveProfile">
+    💾 Salvar alterações
+  </button>
+
+  <button class="secondary" data-go="account">
+    ← Cancelar e voltar
+  </button>
+</div>
     </div>
   `;
 }function account(){return `<h2>Minha conta</h2><div class="card"><p>Conectado como ${esc(s.user.email)}</p><h3>${esc(s.me?.display_name||'Cadastro ainda não concluído')}</h3><p>Situação: <strong>${esc(s.me?.status||'Sem cadastro')}</strong></p>${s.me?.status==='pending'?'<p>Aguardando aprovação do administrador.</p>':''}${!s.me?'<button data-go="signup">Completar cadastro</button>':''}${s.me?.status==='approved'?'<p><button data-go="edit">✏️ Editar meu perfil</button></p>':''}<p><button class="secondary" data-action="logout">Sair da conta</button></p><p><button class="secondary" data-action="delete">Excluir perfil e solicitações</button></p></div>${s.me?.is_admin?`<div class="card"><h2>Painel administrativo</h2><h3>Aguardando aprovação</h3>${s.admin.map(x=>`<p>${esc(x.name)} <button data-approve="${x.id}" data-allow="true">Aprovar</button> <button class="secondary" data-approve="${x.id}" data-allow="false">Recusar</button></p>`).join('')||'<p>Nenhum cadastro pendente.</p>'}</div>`:''}`}
