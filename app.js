@@ -14,7 +14,7 @@ function radios(k,label,options){return `<fieldset><legend>${label}</legend>${op
 function traitPick(k,max){return `<div class="wrap">${TRAITS.map(t=>`<button class="chip ${s.profile[k].includes(t)?'selected':''}" data-trait="${k}" data-value="${esc(t)}" ${!s.profile[k].includes(t)&&s.profile[k].length>=max?'disabled':''}>${esc(t)}</button>`).join('')}</div>`}
 function go(page){s.page=page;s.message='';render();window.scrollTo(0,0)}
 async function rpc(fn,args={}){const {data,error}=await db.rpc(fn,args);if(error)throw error;return data}
-async function refresh(){if(!db)return;const {data:{user}}=await db.auth.getUser();s.user=user;s.me=null;s.profiles=[];s.interests=[];s.admin=[];if(user){s.me=await rpc('my_profile');if(s.me?.status==='approved'){s.profiles=await rpc('directory')||[];s.interests=await rpc('my_interests')||[];if(s.me.is_admin)s.admin=await rpc('admin_queue')||[];await loadPhotos()}}}
+async function refresh(){if(!db)return;const {data:{user}}=await db.auth.getUser();s.user=user;s.me=null;s.profiles=[];s.interests=[];s.admin=[];if(user){s.me=await rpc('my_profile');if(s.me?.status==='approved'){s.profiles=await rpc('directory')||[];s.interests=await rpc('my_interests')||[];if(s.me.is_admin)s.admin=await rpc('admin_queue')||[];await loadPhotos();await loadNotifications()}}}
 async function loadNotifications(){
   if(!s.user || s.me?.status!=='approved'){
     s.notifications=[];
