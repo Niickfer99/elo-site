@@ -318,7 +318,100 @@ function prepareProfileEdit(){
 function content(){if(!configured)return `<div class="card"><h2>Configuração necessária</h2><p>Preencha <code>config.js</code> com a URL e a chave pública do projeto Supabase e execute <code>schema.sql</code>. Veja o README.</p></div>`;if(s.page==='home')return home();if(!s.user)return auth();if(s.page==='signup'&&!s.me)return signup();if(!s.me)return `<div class="card"><h2>Complete seu cadastro</h2><p>Para participar, é necessário usar um convite válido.</p><button data-go="signup">Cadastrar perfil</button><button class="secondary" data-action="logout">Sair</button></div>`;if(s.me.status!=='approved')return account();return ({explore,detail,requests,connections,notifications,edit:editProfile,account,auth})[s.page]?.()||home()}
 function render(){const message=s.message?`<div class="notice" role="status">${esc(s.message)}</div>`:'';$('#app').innerHTML=`<div class="layout">${nav()}<main>${message}${content()}<footer class="muted small">Elo • Comunidade privada • 18+ • Respeito e segurança</footer></main></div>`}
 async function run(task){if(s.busy)return;s.busy=true;try{await task()}catch(e){notify(e.message||'Ocorreu um erro. Tente novamente.')}finally{s.busy=false}}
-async function signupFinish(){validate();const f=s.photo;if(!['image/jpeg','image/png','image/webp'].includes(f.type)||f.size>5242880)throw Error('Use uma imagem JPG, PNG ou WebP de até 5 MB.');const path=`${s.user.id}/${crypto.randomUUID()}.${f.type==='image/png'?'png':f.type==='image/webp'?'webp':'jpg'}`;const up=await db.storage.from('elo-photos').upload(path,f,{contentType:f.type});if(up.error)throw up.error;try{await rpc('register_member',{p_profile:{...s.profile,height_cm:+s.profile.height_cm,min_age:+s.profile.min_age,max_age:+s.profile.max_age,photo_path:path}})}catch(e){await db.storage.from('elo-photos').remove([path]);throw e}await refresh();go('account');notify('Cadastro enviado! Aguarde aprovação da administração.')}
+async function saveProfile(){
+  if(!s.user || s.me?.status!=='approved'){
+    throw Error('Você precisa estar com o perfil aprovado.');
+  }
+
+  const p=s.profile;
+
+  const required=[
+    'display_name','state','city','height_cm','whatsapp',
+    'church','denomination','ministry','faith_time',
+    'favorite_verse','hobbies','relationship_goal'
+  ];
+
+  if(required.some(k=>!String(p[k]??'').trim())){
+    throw Error('Preencha todos os campos obrigatórios.');
+  }
+
+  if(!p.personality?.length || !p.wanted_traits?.length){
+    throw Error('Selecione as características de personalidade e preferências.');
+  }
+
+  if(+p.height_cm<100 || +p.height_cm>250){
+    throw Error('Informe uma altura entre 100 e 250 cm.');
+  }
+
+  if(+p.min_age<18 || +p.max_age<+p.min_age){
+    throw Error('Revise a faixa etária.');
+  }
+
+  if(!/^\+[1-9][0-9]{9,14}$/.test(p.whatsapp)){
+    throw Error('Informe o WhatsApp com DDI, como +5511999999999.');
+  }
+
+  let photoPath=s.me.photo_path;
+  let uploadedPath=null;
+
+  if(s.photo){
+    const f=s.photo;
+
+    if(!['image/jpeg','image/png','image/webp'].includes(f.type)
+       || f.size>5242880){
+      throw Error('Use JPG, PNG ou WebP de até 5 MB.');
+    }
+
+    const ext=f.type==='image/png'?'png':
+              f.type==='image/webp'?'webp':'jpg';
+
+    uploadedPath=`${s.user.id}/${crypto.randomUUID()}.${ext}`;
+
+    const {error}=await db.storage
+      .from('elo-photos')
+      .upload(uploadedPath,f,{contentType:f.type});
+
+    if(error)throw error;
+
+    photoPath=uploadedPath;
+  }
+
+  try{
+    await rpc('update_my_profile',{
+      p_profile:{
+        display_name:p.display_name,
+        state:p.state,
+        city:p.city,
+        height_cm:+p.height_cm,
+        whatsapp:p.whatsapp,
+        church:p.church,
+        denomination:p.denomination,
+        ministry:p.ministry,
+        faith_time:p.faith_time,
+        favorite_verse:p.favorite_verse,
+        hobbies:p.hobbies,
+        bio:p.bio,
+        personality:p.personality,
+        wanted_traits:p.wanted_traits,
+        relationship_goal:p.relationship_goal,
+        min_age:+p.min_age,
+        max_age:+p.max_age,
+        location_preference:p.location_preference,
+        height_preference:p.height_preference,
+        photo_path:photoPath
+      }
+    });
+  }catch(e){
+    if(uploadedPath){
+      await db.storage.from('elo-photos').remove([uploadedPath]);
+    }
+    throw e;
+  }
+
+  await refresh();
+  go('account');
+  notify('💙 Seu perfil foi atualizado com sucesso!');
+}async function signupFinish(){validate();const f=s.photo;if(!['image/jpeg','image/png','image/webp'].includes(f.type)||f.size>5242880)throw Error('Use uma imagem JPG, PNG ou WebP de até 5 MB.');const path=`${s.user.id}/${crypto.randomUUID()}.${f.type==='image/png'?'png':f.type==='image/webp'?'webp':'jpg'}`;const up=await db.storage.from('elo-photos').upload(path,f,{contentType:f.type});if(up.error)throw up.error;try{await rpc('register_member',{p_profile:{...s.profile,height_cm:+s.profile.height_cm,min_age:+s.profile.min_age,max_age:+s.profile.max_age,photo_path:path}})}catch(e){await db.storage.from('elo-photos').remove([path]);throw e}await refresh();go('account');notify('Cadastro enviado! Aguarde aprovação da administração.')}
 document.addEventListener('input',e=>{const x=e.target;if(x.dataset.field&&x.type!=='radio')s.profile[x.dataset.field]=x.value;if(x.id==='invite')s.invite=x.value;if(x.dataset.filter)s.filters[x.dataset.filter]=x.value});
 document.addEventListener('change',e=>{const x=e.target;if(x.dataset.field&&x.type==='radio')s.profile[x.dataset.field]=x.value;if(x.id==='photo')s.photo=x.files?.[0]||null;if(x.dataset.filter)render()});
 document.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;run(async()=>{if(b.dataset.go){
