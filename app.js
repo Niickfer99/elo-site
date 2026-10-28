@@ -15,6 +15,14 @@ function traitPick(k,max){return `<div class="wrap">${TRAITS.map(t=>`<button cla
 function go(page){s.page=page;s.message='';render();window.scrollTo(0,0)}
 async function rpc(fn,args={}){const {data,error}=await db.rpc(fn,args);if(error)throw error;return data}
 async function refresh(){if(!db)return;const {data:{user}}=await db.auth.getUser();s.user=user;s.me=null;s.profiles=[];s.interests=[];s.admin=[];if(user){s.me=await rpc('my_profile');if(s.me?.status==='approved'){s.profiles=await rpc('directory')||[];s.interests=await rpc('my_interests')||[];if(s.me.is_admin)s.admin=await rpc('admin_queue')||[];await loadPhotos()}}}
+async function loadNotifications(){
+  if(!s.user || s.me?.status!=='approved'){
+    s.notifications=[];
+    return;
+  }
+
+  s.notifications=await rpc('my_notifications')||[];
+}
 async function loadPhotos(){const paths=[...s.profiles.map(p=>p.photo_path),s.me?.photo_path].filter(Boolean);const out={};await Promise.all(paths.map(async path=>{const {data,error}=await db.storage.from('elo-photos').createSignedUrl(path,600);if(!error)out[path]=data.signedUrl}));s.images=out}
 function age(birth){let d=new Date(birth+'T12:00:00'),n=new Date();return n.getFullYear()-d.getFullYear()-(n.getMonth()<d.getMonth()||n.getMonth()===d.getMonth()&&n.getDate()<d.getDate()?1:0)}
 function score(p){if(!s.me)return null;const a=s.me;let aTraits=a.wanted_traits||[],bTraits=p.wanted_traits||[],aSelf=a.personality||[],bSelf=p.personality||[];const overlap=(want,have)=>want.length?want.filter(x=>have.includes(x)).length/want.length:0.5;let personality=(overlap(aTraits,bSelf)+overlap(bTraits,aSelf))/2;let ageFit=(p.age>=a.min_age&&p.age<=a.max_age&&age(a.birth_date)>=p.min_age&&age(a.birth_date)<=p.max_age)?1:0;let place=(a.state===p.state?1:0)+(a.city.toLowerCase()===p.city.toLowerCase()?1:0);let loc=(a.location_preference==='all'||a.location_preference==='state'&&a.state===p.state||a.location_preference==='city'&&place===2)?1:0;let faith=a.denomination===p.denomination?1:0.5;let goals=a.relationship_goal===p.goal?1:0.5;let hobbyWords=a.hobbies.toLowerCase().split(/[,;]+/).map(x=>x.trim()).filter(Boolean),other=p.hobbies.toLowerCase();let hobbies=hobbyWords.length?hobbyWords.filter(x=>other.includes(x)).length/hobbyWords.length:0;return Math.round(30*personality+25*faith+20*goals+15*((ageFit+loc)/2)+10*hobbies)}
