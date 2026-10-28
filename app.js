@@ -101,8 +101,39 @@ function notifications(){
       :''}
   `;
 }function connections(){const accepted=s.interests.filter(i=>i.status==='accepted');return `<h2>Minhas conexões</h2>${accepted.map(i=>{const other=i.sender===s.user.id?i.recipient:i.sender;return `<div class="card"><h3>${esc(i.name)}</h3><p>Interesse aceito por ambas as partes.</p><button data-phone="${other}">Mostrar WhatsApp</button>${s.phone?.id===other?`<p><a href="https://wa.me/${esc(s.phone.value.replace(/\D/g,''))}" target="_blank" rel="noopener noreferrer">Conversar no WhatsApp: ${esc(s.phone.value)}</a></p>`:''}</div>`}).join('')||'<div class="card">Nenhuma conexão aceita ainda.</div>'}`}
-function account(){return `<h2>Minha conta</h2><div class="card"><p>Conectado como ${esc(s.user.email)}</p><h3>${esc(s.me?.display_name||'Cadastro ainda não concluído')}</h3><p>Situação: <strong>${esc(s.me?.status||'Sem cadastro')}</strong></p>${s.me?.status==='pending'?'<p>Aguardando aprovação do administrador.</p>':''}${!s.me?'<button data-go="signup">Completar cadastro</button>':''}${s.me?.status==='approved'?'<p><button data-go="edit">✏️ Editar meu perfil</button></p>':''}<p><button class="secondary" data-action="logout">Sair da conta</button></p><p><button class="secondary" data-action="delete">Excluir perfil e solicitações</button></p></div>${s.me?.is_admin?`<div class="card"><h2>Painel administrativo</h2><h3>Aguardando aprovação</h3>${s.admin.map(x=>`<p>${esc(x.name)} <button data-approve="${x.id}" data-allow="true">Aprovar</button> <button class="secondary" data-approve="${x.id}" data-allow="false">Recusar</button></p>`).join('')||'<p>Nenhum cadastro pendente.</p>'}</div>`:''}`}
-function content(){if(!configured)return `<div class="card"><h2>Configuração necessária</h2><p>Preencha <code>config.js</code> com a URL e a chave pública do projeto Supabase e execute <code>schema.sql</code>. Veja o README.</p></div>`;if(s.page==='home')return home();if(!s.user)return auth();if(s.page==='signup'&&!s.me)return signup();if(!s.me)return `<div class="card"><h2>Complete seu cadastro</h2><p>Para participar, é necessário usar um convite válido.</p><button data-go="signup">Cadastrar perfil</button><button class="secondary" data-action="logout">Sair</button></div>`;if(s.me.status!=='approved')return account();return ({explore,detail,requests,connections,notifications,account,auth})[s.page]?.()||home()}
+function editProfile(){
+  return `
+    <h2>✏️ Editar meu perfil</h2>
+
+    <div class="card">
+      <h3>Suas informações</h3>
+      <p class="muted">
+        Aqui você poderá atualizar seus dados,
+        preferências e foto de perfil.
+      </p>
+
+      <p>
+        <strong>Nome atual:</strong>
+        ${esc(s.me?.display_name)}
+      </p>
+
+      <p>
+        <strong>Cidade:</strong>
+        ${esc(s.me?.city)}
+      </p>
+
+      <p>
+        <strong>Estado:</strong>
+        ${esc(s.me?.state)}
+      </p>
+
+      <button class="secondary" data-go="account">
+        ← Voltar ao meu perfil
+      </button>
+    </div>
+  `;
+}function account(){return `<h2>Minha conta</h2><div class="card"><p>Conectado como ${esc(s.user.email)}</p><h3>${esc(s.me?.display_name||'Cadastro ainda não concluído')}</h3><p>Situação: <strong>${esc(s.me?.status||'Sem cadastro')}</strong></p>${s.me?.status==='pending'?'<p>Aguardando aprovação do administrador.</p>':''}${!s.me?'<button data-go="signup">Completar cadastro</button>':''}${s.me?.status==='approved'?'<p><button data-go="edit">✏️ Editar meu perfil</button></p>':''}<p><button class="secondary" data-action="logout">Sair da conta</button></p><p><button class="secondary" data-action="delete">Excluir perfil e solicitações</button></p></div>${s.me?.is_admin?`<div class="card"><h2>Painel administrativo</h2><h3>Aguardando aprovação</h3>${s.admin.map(x=>`<p>${esc(x.name)} <button data-approve="${x.id}" data-allow="true">Aprovar</button> <button class="secondary" data-approve="${x.id}" data-allow="false">Recusar</button></p>`).join('')||'<p>Nenhum cadastro pendente.</p>'}</div>`:''}`}
+function content(){if(!configured)return `<div class="card"><h2>Configuração necessária</h2><p>Preencha <code>config.js</code> com a URL e a chave pública do projeto Supabase e execute <code>schema.sql</code>. Veja o README.</p></div>`;if(s.page==='home')return home();if(!s.user)return auth();if(s.page==='signup'&&!s.me)return signup();if(!s.me)return `<div class="card"><h2>Complete seu cadastro</h2><p>Para participar, é necessário usar um convite válido.</p><button data-go="signup">Cadastrar perfil</button><button class="secondary" data-action="logout">Sair</button></div>`;if(s.me.status!=='approved')return account();return ({explore,detail,requests,connections,notifications,edit:editProfile,account,auth})[s.page]?.()||home()}
 function render(){const message=s.message?`<div class="notice" role="status">${esc(s.message)}</div>`:'';$('#app').innerHTML=`<div class="layout">${nav()}<main>${message}${content()}<footer class="muted small">Elo • Comunidade privada • 18+ • Respeito e segurança</footer></main></div>`}
 async function run(task){if(s.busy)return;s.busy=true;try{await task()}catch(e){notify(e.message||'Ocorreu um erro. Tente novamente.')}finally{s.busy=false}}
 async function signupFinish(){validate();const f=s.photo;if(!['image/jpeg','image/png','image/webp'].includes(f.type)||f.size>5242880)throw Error('Use uma imagem JPG, PNG ou WebP de até 5 MB.');const path=`${s.user.id}/${crypto.randomUUID()}.${f.type==='image/png'?'png':f.type==='image/webp'?'webp':'jpg'}`;const up=await db.storage.from('elo-photos').upload(path,f,{contentType:f.type});if(up.error)throw up.error;try{await rpc('register_member',{p_profile:{...s.profile,height_cm:+s.profile.height_cm,min_age:+s.profile.min_age,max_age:+s.profile.max_age,photo_path:path}})}catch(e){await db.storage.from('elo-photos').remove([path]);throw e}await refresh();go('account');notify('Cadastro enviado! Aguarde aprovação da administração.')}
