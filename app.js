@@ -122,6 +122,12 @@ function prepareProfileEdit(){
 
     <div class="card">
       <h3>Suas informações</h3>
+
+${field('display_name','Nome ou nome de exibição *')}
+${select('state','Estado *',STATES)}
+${field('city','Cidade *')}
+${field('height_cm','Altura em centímetros *','170','number')}
+${field('whatsapp','WhatsApp privado *','+5511999999999','tel')}
       <p class="muted">
         Aqui você poderá atualizar seus dados,
         preferências e foto de perfil.
