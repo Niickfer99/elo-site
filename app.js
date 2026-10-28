@@ -202,59 +202,106 @@ function prepareProfileEdit(){
     <div class="card">
       <h3>Suas informações</h3>
 
-${field('display_name','Nome ou nome de exibição *')}
-${select('state','Estado *',STATES)}
-${field('city','Cidade *')}
-${field('height_cm','Altura em centímetros *','170','number')}
-${field('whatsapp','WhatsApp privado *','+5511999999999','tel')}
+      ${field('display_name','Nome ou nome de exibição *')}
+      ${select('state','Estado *',STATES)}
+      ${field('city','Cidade *')}
+      ${field('height_cm','Altura em centímetros *','170','number')}
+      ${field('whatsapp','WhatsApp privado *','+5511999999999','tel')}
 
-<hr>
-<h3>✝️ Sua caminhada cristã</h3>
+      <hr>
+      <h3>✝️ Sua caminhada cristã</h3>
 
-${field('church','Igreja que frequenta *')}
+      ${field('church','Igreja que frequenta *')}
 
-${select('denomination','Denominação *',[
-  'Batista',
-  'Assembleia de Deus',
-  'Presbiteriana',
-  'Metodista',
-  'Quadrangular',
-  'Congregacional',
-  'Interdenominacional',
-  'Outra'
-])}
+      ${select('denomination','Denominação *',[
+        'Batista',
+        'Assembleia de Deus',
+        'Presbiteriana',
+        'Metodista',
+        'Quadrangular',
+        'Congregacional',
+        'Interdenominacional',
+        'Outra'
+      ])}
 
-${field('ministry','Ministério em que serve *','Nenhum atualmente, se for o caso')}
+      ${field('ministry','Ministério em que serve *','Nenhum atualmente, se for o caso')}
 
-${select('faith_time','Tempo de caminhada cristã *',[
-  'Menos de 1 ano',
-  '1 a 3 anos',
-  '4 a 7 anos',
-  '8 a 15 anos',
-  'Mais de 15 anos',
-  'Desde a infância'
-])}
+      ${select('faith_time','Tempo de caminhada cristã *',[
+        'Menos de 1 ano',
+        '1 a 3 anos',
+        '4 a 7 anos',
+        '8 a 15 anos',
+        'Mais de 15 anos',
+        'Desde a infância'
+      ])}
 
-${field('favorite_verse','Versículo favorito *')}
+      ${field('favorite_verse','Versículo favorito *')}
+
+      <hr>
+      <h3>💙 Sua personalidade</h3>
+
+      <label>Como você se define? * (até 6 características)</label>
+      ${traitPick('personality',6)}
+
+      ${field('hobbies','Seus hobbies *')}
+
+      <label>
+        Sua apresentação pessoal
+        <textarea data-field="bio" rows="5"
+          placeholder="Conte um pouco sobre você...">${esc(s.profile.bio)}</textarea>
+      </label>
+
+      <hr>
+      <h3>♡ Suas preferências</h3>
+
+      ${radios('relationship_goal','Objetivo do relacionamento *',[
+        ['serious','Relacionamento sério'],
+        ['friendship','Somente amizade']
+      ])}
+
+      <label>Características que você procura *</label>
+      ${traitPick('wanted_traits',20)}
+
+      ${field('min_age','Idade mínima *','','number')}
+      ${field('max_age','Idade máxima *','','number')}
+
+      ${radios('location_preference','Preferência de localização *',[
+        ['city','Mesma cidade'],
+        ['state','Mesmo estado'],
+        ['all','Qualquer lugar do Brasil']
+      ])}
+
+      ${radios('height_preference','Preferência de altura *',[
+        ['any','Sem preferência'],
+        ['taller','Mais alto(a)'],
+        ['shorter','Mais baixo(a)'],
+        ['similar','Altura semelhante']
+      ])}
+
+      <hr>
+      <h3>📸 Sua foto de perfil</h3>
+
       <p class="muted">
-        Aqui você poderá atualizar seus dados,
-        preferências e foto de perfil.
+        Foto atual:
       </p>
 
-      <p>
-        <strong>Nome atual:</strong>
-        ${esc(s.me?.display_name)}
+      ${photo(s.me?.photo_path)}
+
+      <label>
+        Escolher uma nova foto (JPG, PNG ou WebP, até 5 MB)
+        <input id="photo" type="file"
+          accept="image/jpeg,image/png,image/webp">
+      </label>
+
+      <p class="muted small">
+        A foto atual será mantida caso você não escolha outra.
       </p>
 
-      <p>
-        <strong>Cidade:</strong>
-        ${esc(s.me?.city)}
+      <p class="small">
+        ${s.photo?esc(s.photo.name):'Nenhuma nova foto selecionada'}
       </p>
 
-      <p>
-        <strong>Estado:</strong>
-        ${esc(s.me?.state)}
-      </p>
+      <hr>
 
       <button class="secondary" data-go="account">
         ← Voltar ao meu perfil
