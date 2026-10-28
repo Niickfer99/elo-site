@@ -75,32 +75,6 @@ ${field('hobbies','Seus hobbies *')}
     placeholder="Conte um pouco sobre você...">${esc(s.profile.bio)}</textarea>
 </label>
 
-<hr>
-<h3>♡ Suas preferências</h3>
-
-${radios('relationship_goal','Objetivo do relacionamento *',[
-  ['serious','Relacionamento sério'],
-  ['friendship','Somente amizade']
-])}
-
-<label>Características que você procura *</label>
-${traitPick('wanted_traits',20)}
-
-${field('min_age','Idade mínima *','','number')}
-${field('max_age','Idade máxima *','','number')}
-
-${radios('location_preference','Preferência de localização *',[
-  ['city','Mesma cidade'],
-  ['state','Mesmo estado'],
-  ['all','Qualquer lugar do Brasil']
-])}
-
-${radios('height_preference','Preferência de altura *',[
-  ['any','Sem preferência'],
-  ['taller','Mais alto(a)'],
-  ['shorter','Mais baixo(a)'],
-  ['similar','Altura semelhante']
-])}
 ,()=>`${field('church','Igreja que frequenta *')}${select('denomination','Denominação *',['Batista','Assembleia de Deus','Presbiteriana','Metodista','Quadrangular','Congregacional','Interdenominacional','Outra'])}${field('ministry','Ministério em que serve *','Nenhum atualmente, se for o caso')}${select('faith_time','Tempo de caminhada cristã *',['Menos de 1 ano','1 a 3 anos','4 a 7 anos','8 a 15 anos','Mais de 15 anos','Desde a infância'])}${field('favorite_verse','Versículo favorito *')}`,()=>`<label>Como você se define? * (até 6)</label>${traitPick('personality',6)}${field('hobbies','Hobbies *')}<label>Apresentação opcional<textarea data-field="bio">${esc(p.bio)}</textarea></label>`,()=>`${radios('relationship_goal','Objetivo do relacionamento *',[['serious','Relacionamento sério'],['friendship','Somente Amizade']])}<label>Características desejadas *</label>${traitPick('wanted_traits',20)}${field('min_age','Idade mínima *','','number')}${field('max_age','Idade máxima *','','number')}${radios('location_preference','Preferência de localização *',[['city','Mesma cidade'],['state','Mesmo estado'],['all','Qualquer lugar do Brasil']])}${radios('height_preference','Preferência de altura *',[['any','Sem preferência'],['taller','Mais alto(a)'],['shorter','Mais baixo(a)'],['similar','Altura semelhante']])}<p class="muted small">Ao concluir, você solicita aprovação da administração. Seu número não é público e só poderá ser consultado por uma conexão aceita.</p>`];return `<h2>${['Sobre você','Sua caminhada cristã','Sua personalidade','Suas preferências'][s.step]}</h2><p class="muted">Cadastro • etapa ${s.step+1} de 4</p><div class="progress">${[0,1,2,3].map(i=>`<span class="${i<=s.step?'done':''}"></span>`).join('')}</div>${sections[s.step]()}<div class="actions"><button class="secondary" data-action="back">Voltar</button><button data-action="next">${s.step===3?'Enviar para aprovação':'Próxima etapa →'}</button></div>`}
 function validate(){const p=s.profile;const keys=[['display_name','birth_date','sex','state','city','height_cm','whatsapp'],['church','denomination','ministry','faith_time','favorite_verse'],['hobbies'],['relationship_goal','min_age','max_age','location_preference','height_preference']][s.step];if(keys.some(k=>!String(p[k]??'').trim()))throw Error('Preencha todos os campos obrigatórios.');if(s.step===0){if(!s.photo)throw Error('Escolha uma foto de perfil.');if(age(p.birth_date)<18||!Number.isFinite(age(p.birth_date)))throw Error('Cadastro exclusivo para maiores de 18 anos.');if(!/^\+[1-9][0-9]{9,14}$/.test(p.whatsapp))throw Error('Use WhatsApp com DDI, por exemplo +5511999999999.');if(+p.height_cm<100||+p.height_cm>250)throw Error('Informe a altura em centímetros (100 a 250).')}if(s.step===2&&!p.personality.length)throw Error('Selecione pelo menos uma característica.');if(s.step===3){if(!p.wanted_traits.length)throw Error('Selecione características desejadas.');if(+p.min_age<18||+p.max_age<+p.min_age)throw Error('Revise a faixa etária.')}}
 function photo(path){return s.images[path]?`<img class="avatar" src="${esc(s.images[path])}" alt="Foto do perfil">`:'<div class="avatar placeholder">♙</div>'}
