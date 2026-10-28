@@ -207,6 +207,35 @@ ${select('state','Estado *',STATES)}
 ${field('city','Cidade *')}
 ${field('height_cm','Altura em centímetros *','170','number')}
 ${field('whatsapp','WhatsApp privado *','+5511999999999','tel')}
+
+<hr>
+<h3>✝️ Sua caminhada cristã</h3>
+
+${field('church','Igreja que frequenta *')}
+
+${select('denomination','Denominação *',[
+  'Batista',
+  'Assembleia de Deus',
+  'Presbiteriana',
+  'Metodista',
+  'Quadrangular',
+  'Congregacional',
+  'Interdenominacional',
+  'Outra'
+])}
+
+${field('ministry','Ministério em que serve *','Nenhum atualmente, se for o caso')}
+
+${select('faith_time','Tempo de caminhada cristã *',[
+  'Menos de 1 ano',
+  '1 a 3 anos',
+  '4 a 7 anos',
+  '8 a 15 anos',
+  'Mais de 15 anos',
+  'Desde a infância'
+])}
+
+${field('favorite_verse','Versículo favorito *')}
       <p class="muted">
         Aqui você poderá atualizar seus dados,
         preferências e foto de perfil.
