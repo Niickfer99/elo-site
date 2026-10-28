@@ -15,7 +15,29 @@ function traitPick(k,max){return `<div class="wrap">${TRAITS.map(t=>`<button cla
 function go(page){s.page=page;s.message='';render();window.scrollTo(0,0)}
 async function rpc(fn,args={}){const {data,error}=await db.rpc(fn,args);if(error)throw error;return data}
 async function refresh(){if(!db)return;const {data:{user}}=await db.auth.getUser();s.user=user;s.me=null;s.profiles=[];s.interests=[];s.admin=[];if(user){s.me=await rpc('my_profile');if(s.me?.status==='approved'){s.profiles=await rpc('directory')||[];s.interests=await rpc('my_interests')||[];if(s.me.is_admin)s.admin=await rpc('admin_queue')||[];await loadPhotos();await loadNotifications()}}}
-async function loadNotifications(){
+async function generateMatchNotifications(){
+  if(!s.user || s.me?.status!=='approved')return;
+
+  const now=Date.now();
+  const thirtyDays=30*24*60*60*1000;
+
+  const matches=s.profiles.filter(p=>{
+    if(!p.approved_at)return false;
+
+    const approved=Date.parse(p.approved_at);
+
+    return Number.isFinite(approved)
+      && approved<=now
+      && now-approved<=thirtyDays
+      && score(p)>=75;
+  });
+
+  for(const p of matches){
+    await rpc('create_match_notification',{
+      p_member:p.id
+    });
+  }
+}async function loadNotifications(){
   if(!s.user || s.me?.status!=='approved'){
     s.notifications=[];
     return;
