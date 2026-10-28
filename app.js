@@ -5,7 +5,7 @@ const db=configured?createClient(SUPABASE_URL,SUPABASE_ANON_KEY):null;
 const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const STATES='AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO'.split(' ');
 const TRAITS=['Calmo(a)','Animado(a)','Risonho(a)','Brincalhão(ona)','Carinhoso(a)','Romântico(a)','Comunicativo(a)','Paciente','Tímido(a)','Extrovertido(a)','Introvertido(a)','Caseiro(a)','Aventureiro(a)','Criativo(a)','Organizado(a)','Espontâneo(a)','Sociável','Reservado(a)','Sensível','Bem-humorado(a)'];
-const empty={display_name:'',birth_date:'',state:'',city:'',height_cm:'',whatsapp:'',church:'',denomination:'',ministry:'',faith_time:'',favorite_verse:'',hobbies:'',bio:'',personality:[],wanted_traits:[],relationship_goal:'',min_age:'18',max_age:'35',location_preference:'all',height_preference:'any'};
+const empty={display_name:'',birth_date:'',sex:'',state:'',city:'',height_cm:'',whatsapp:'',church:'',denomination:'',ministry:'',faith_time:'',favorite_verse:'',hobbies:'',bio:'',personality:[],wanted_traits:[],relationship_goal:'',min_age:'18',max_age:'35',location_preference:'all',height_preference:'any'};
 const s={page:'home',user:null,me:null,profiles:[],interests:[],admin:[],profile:{...empty},step:0,photo:null,invite:'',selected:null,filters:{state:'all',min:'18',max:'50',trait:'',sort:'score'},message:'',busy:false,phone:null,images:{}};
 function notify(t){s.message=t;render()}
 function field(k,label,placeholder='',type='text'){return `<label>${label}<input data-field="${k}" type="${type}" value="${esc(s.profile[k])}" placeholder="${esc(placeholder)}" ${type==='number'?'min="0"':''}></label>`}
